@@ -7,25 +7,17 @@ import 'package:video_player/video_player.dart';
 class ReelCardWidget extends StatefulWidget {
   final String id;
   final String title;
-  final String content;
-  final String imageUrl;
-  final int likes;
-  final int comments;
+  final String description;
+  final String videoUrl;
   final DateTime postDate;
-  final String userName;
-  final String userProfileImageUrl;
 
   const ReelCardWidget({
     super.key,
     required this.id,
     required this.title,
-    required this.content,
-    required this.imageUrl,
-    required this.likes,
-    required this.comments,
+    required this.description,
+    required this.videoUrl,
     required this.postDate,
-    required this.userName,
-    required this.userProfileImageUrl,
   });
 
   @override
@@ -48,14 +40,14 @@ class _ReelCardWidgetState extends State<ReelCardWidget> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Post Image
-              widget.imageUrl.isNotEmpty
+              widget.videoUrl.isNotEmpty
                   ? SizedBox(
                       height: 300,
                       width: 800,
                       child: Chewie(
                         controller: ChewieController(
                           videoPlayerController:
-                              VideoPlayerController.network(widget.imageUrl),
+                              VideoPlayerController.network(widget.videoUrl),
                           autoPlay: false,
                           looping: true,
                         ),
@@ -76,7 +68,7 @@ class _ReelCardWidgetState extends State<ReelCardWidget> {
               // Post Content
               Padding(
                 padding: const EdgeInsets.all(8.0),
-                child: Text("test test ofhowhfwh ofhwo hf"),
+                child: Text(widget.description),
               ),
 
               // Post Details (Likes, Comments, Date)
@@ -85,24 +77,16 @@ class _ReelCardWidgetState extends State<ReelCardWidget> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Likes: ${widget.likes}'),
                     Text('Date: ${widget.postDate.toLocal()}'),
                   ],
                 ),
               ),
 
               // User Information (Name, Profile Image)
-              Padding(
-                padding: const EdgeInsets.all(8.0),
+              const Padding(
+                padding: EdgeInsets.all(8.0),
                 child: Row(
-                  children: [
-                    CircleAvatar(
-                      backgroundImage: NetworkImage(widget.userProfileImageUrl),
-                      radius: 20,
-                    ),
-                    const SizedBox(width: 10),
-                    Text(widget.userName),
-                  ],
+                  children: [],
                 ),
               ),
               Row(

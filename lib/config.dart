@@ -1,5 +1,5 @@
 class Config {
-  static const apiUrl = "baac-master-production.up.railway.app";
-  static const String postUrl = "/api/posts";
-  static const String reelsUrl = "/api/posts/reels";
+  static const apiUrl = "localhost:5002";
+  static const String reclamationUrl = "/reclamation/";
+  static const String magazineUrl = "/magazine/";
 }

@@ -1,81 +1,112 @@
 import 'package:flutter/material.dart';
-import 'package:get/route_manager.dart';
-import 'package:pdm_backoffice/models/reclamation.dart';
-import 'package:pdm_backoffice/screens/magazine_screen.dart';
-import 'package:pdm_backoffice/screens/reclamationDetails.dart';
+import 'package:pdm_backoffice/controller/reclamation_controller.dart';
+import 'package:pdm_backoffice/models/reclamation_model.dart';
+import 'package:pdm_backoffice/screens/reclamation_card.dart';
+import 'package:provider/provider.dart';
 
-class ReclamationScreen extends StatefulWidget {
+class ReclamationPage extends StatefulWidget {
+  const ReclamationPage({Key? key}) : super(key: key);
+
   @override
-  _ReclamationScreenState createState() => _ReclamationScreenState();
+  State<ReclamationPage> createState() => _ReclamationPageState();
 }
 
-class _ReclamationScreenState extends State<ReclamationScreen> {
-  List<Recalamtion> reclamations = [
-    Recalamtion(
-      tittre: "Reclamation1",
-      description: "Mauvaise Expérience avec le Service Client",
-    ),
-    Recalamtion(
-      tittre: "Reclamation2",
-      description: "Fausse information",
-    ),
-    Recalamtion(
-      tittre: "Reclamation3",
-      description: "Erreur",
-    ),
-  ];
+class _ReclamationPageState extends State<ReclamationPage> {
+  String selectedStatus = "all";
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Liste des Réclamations :'),
+        title: const Text("Reclamation"),
       ),
-      drawer: Drawer(
-        child: Column(
-          children: [
-            ListTile(
-              title: Text("Reclamations"),
-            ),
-            ListTile(
-              onTap: () => Get.to(const MagazinePage()),
-              title: Text("Magazines"),
-            ),
-          ],
-        ),
-      ),
-      body: reclamations.isEmpty
-          ? Center(
-              child: Text('Aucune réclamation pour le moment.'),
-            )
-          : ListView.builder(
-              itemCount: reclamations.length,
-              itemBuilder: (context, index) {
-                return ReclamationListItem(reclamation: reclamations[index]);
+      body: Consumer<ReclamationNotifier>(
+        builder: (context, reclamationNotifier, child) {
+          reclamationNotifier.getReclamation();
+          return Padding(
+            padding: const EdgeInsets.all(8),
+            child: FutureBuilder(
+              future: reclamationNotifier.reclamationList,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                } else if (snapshot.hasError) {
+                  return Text("Error ${snapshot.error}");
+                } else {
+                  final reclamations = snapshot.data;
+                  final filteredReclamations = _filterReclamations(
+                    reclamations!,
+                    selectedStatus,
+                  );
+
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: DropdownButton<String>(
+                          value: selectedStatus,
+                          onChanged: (String? newValue) {
+                            setState(() {
+                              selectedStatus = newValue!;
+                            });
+                          },
+                          items: <String>["all", "resolved", "pending"]
+                              .map<DropdownMenuItem<String>>((String value) {
+                            return DropdownMenuItem<String>(
+                              value: value,
+                              child: Text(value),
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                      SizedBox(height: 10),
+                      Expanded(
+                        child: ListView.builder(
+                          itemCount: filteredReclamations.length,
+                          scrollDirection: Axis.vertical,
+                          itemBuilder: (context, index) {
+                            final reclamation = filteredReclamations[index];
+
+                            return ReclamationCard(
+                              title: reclamation.tittre,
+                              description: reclamation.description,
+                              status: reclamation.statue,
+                              createdAt: reclamation.createdAt.timeZoneName,
+                              updatedAt: reclamation.updatedAt.timeZoneName,
+                              onUpdateStatus: () {
+                                reclamationNotifier
+                                    .updateReclamation(reclamation.id);
+                              },
+                              ondelete: () {
+                                reclamationNotifier
+                                    .deleteReclamation(reclamation.id);
+                              },
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  );
+                }
               },
             ),
+          );
+        },
+      ),
     );
   }
-}
 
-class ReclamationListItem extends StatelessWidget {
-  final Recalamtion reclamation;
-
-  ReclamationListItem({required this.reclamation});
-
-  @override
-  Widget build(BuildContext context) {
-    return ListTile(
-      title: Text(reclamation.tittre),
-      subtitle: Text(reclamation.description),
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ReclamationDetails(reclamation: reclamation),
-          ),
-        );
-      },
-    );
+  List<GetAllReclamationRes> _filterReclamations(
+    List<GetAllReclamationRes> reclamations,
+    String status,
+  ) {
+    if (status == "all") {
+      return reclamations;
+    } else {
+      return reclamations.where((reclamation) {
+        return reclamation.statue == (status == "resolved");
+      }).toList();
+    }
   }
 }

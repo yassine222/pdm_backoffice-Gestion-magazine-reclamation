@@ -11,17 +11,17 @@ class MagazineHelper {
       'Accept': '*/*'
     };
 
-    var url = Uri.https(Config.apiUrl, Config.reelsUrl);
+    var url = Uri.http(Config.apiUrl, Config.magazineUrl);
     var response = await client.get(
       url,
       headers: requestHeaders,
     );
 
     if (response.statusCode == 200) {
-      var postsList = getAllUsersPostsResFromJson(response.body);
+      var postsList = getAllMagazineResFromJson(response.body);
       return postsList;
     } else {
-      throw Exception("Failed to get Reels");
+      throw Exception("Failed to get Magazine");
     }
   }
 
@@ -30,7 +30,7 @@ class MagazineHelper {
       'Content-Type': 'application/json',
     };
 
-    var url = Uri.https(Config.apiUrl, "${Config.postUrl}/$postId");
+    var url = Uri.http(Config.apiUrl, "${Config.magazineUrl}/$postId");
     var response = await client.delete(
       url,
       headers: requestHeaders,
